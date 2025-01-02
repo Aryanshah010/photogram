@@ -1,12 +1,21 @@
-import React, { useState } from 'react'
+import React from 'react'
+import SignUp from './pages/SignUp';
+// import SignIn from './pages/SignIn';
+import camera from './assets/camera.png';
 
 function App() {
-  var [a,b]=useState(0);
+  React.useEffect(() => {
+    document.title = "Photogram"; 
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.href = camera;
+    document.head.appendChild(link);
+  }, []);
+
   return (
-    <div className="w-full h-screen bg-zinc-900 text-white p-5">
-      <h1>{a}</h1>
-      <button onClick={()=>b(a+1)} className='px-3 py-1 bg-red-500 rounded-md text-xs' >Click me</button>
-    </div>
+    <SignUp/>
+
+    
   )
 }
 

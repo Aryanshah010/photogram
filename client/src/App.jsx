@@ -1,5 +1,6 @@
 import React from 'react'
 import SignUp from './pages/SignUp';
+// import SignIn from './pages/SignIn';
 import camera from './assets/camera.png';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
 
   return (
     <SignUp/>
+
     
   )
 }

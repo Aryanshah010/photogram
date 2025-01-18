@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyparser = require('body-parser');
-
+const signupRoute = require('./Routes/signupRoute');  
 
 const app = express();
 
@@ -12,6 +12,8 @@ app.use(cors({
   credentials: true,
 }));
 
+app.use(bodyparser.json());
+app.use('/api',signupRoute)
 
 
 //start server

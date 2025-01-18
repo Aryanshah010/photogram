@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom';
 import background from '../assets/background.jpg';
 
 function SignIn() {
@@ -28,7 +29,7 @@ function SignIn() {
                 {/*Login form*/}
                 <div className="relative z-10">
                     <div className="bg-gray-500/50 w-full max-w-md shadow-md text-center p-5 rounded-md">
-                        <h3 className="text-teal-400 text-xl font-bold">Login</h3>
+                        <h3 className="text-teal-400 text-xl font-bold">Sign In</h3>
                         <form className="w-80 h-auto flex flex-col mt-5 space-y-6">
                             <InputField placeholder="Email" type="email" icon="fa-envelope" />
                             <InputField placeholder="Password" type="password" icon="fa-eye-slash" />
@@ -39,12 +40,12 @@ function SignIn() {
                                 Sign In
                             </button>
                         </form>
-                        <p className="mt-6 text-s text-zinc-900">
-                            Or don't have an account?{' '}
-                            <a href="#" className="text-teal-500 hover:underline">
-                                Sign Up
-                            </a>
-                        </p>
+                        <p className="mt-6 text-s text-white">
+                       or don't have an account?{' '}
+                        <Link to="/signup" className="text-teal-500 hover:underline">
+                            Sign Up
+                        </Link>
+                    </p>
                     </div>
                 </div>
             </div>

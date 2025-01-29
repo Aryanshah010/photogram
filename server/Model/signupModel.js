@@ -7,12 +7,5 @@ const createUser=async(name,email,hashedpassword)=>{
     const values=[name,email,hashedpassword];
     return pool.query(query,values);
 };
-const findUserByEmail = async (email) => {
-    const query = `
-        SELECT * FROM users_registration
-        WHERE email = $1`;
-    const values = [email];
-    return pool.query(query, values);
-};
 
-module.exports={ createUser,findUserByEmail };
+module.exports={ createUser };

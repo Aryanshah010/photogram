@@ -1,5 +1,6 @@
 const express = require('express');
-const { createUser, findUserByEmail } = require('../Model/signupModel');
+const { createUser } = require('../Model/signupModel');
+const { findUserByEmail } = require('../Model/signinModel');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 

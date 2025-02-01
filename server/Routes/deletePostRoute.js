@@ -1,14 +1,24 @@
 const express = require('express');
-const { deletePost, getPostById } = require('../model/postModel'); // Ensure getPostById function exists
+const fs = require('fs');
+const path = require('path'); // For correct file path handling
+const { deletePost, getPostById } = require('../model/postModel');
 const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 
+// Helper function to delete a file
+const deleteFile = (filePath) => {
+    if (filePath && fs.existsSync(filePath)) {
+        const absoluteFilePath = path.join(__dirname, '..', filePath); // Ensure path is absolute
+        fs.unlinkSync(absoluteFilePath);
+    }
+};
+
 // Route to delete a post
 router.delete('/post/:id', authenticateToken, async (req, res) => {
-    try {
-        const post_id = req.params.id;
-        const user_id = req.user.userId; // Extracted from the authentication token
+    const post_id = req.params.id;
+    const user_id = req.user.userId; // Extracted from the authentication token
 
+    try {
         // Fetch the post details
         const post = await getPostById(post_id);
         if (!post) {
@@ -21,9 +31,17 @@ router.delete('/post/:id', authenticateToken, async (req, res) => {
         }
 
         // Delete the post
-        await deletePost(post_id);
-        res.status(200).json({ message: 'Post deleted successfully' });
+        const result = await deletePost(post_id);
+        
+        if (result.rowCount === 0) {
+            return res.status(400).json({ message: 'Failed to delete post, it may have already been deleted' });
+        }
 
+        // Delete the associated file (if it exists)
+        deleteFile(post.image_path);
+
+        res.status(200).json({ message: 'Post deleted successfully' });
+        
     } catch (error) {
         console.error('Error deleting post:', error.message);
         res.status(500).json({ message: 'Failed to delete post' });

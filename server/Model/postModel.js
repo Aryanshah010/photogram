@@ -27,17 +27,17 @@ async function getGenreById(genre_id) {
 
 async function deletePost(post_id) {
     try {
-        const query = 'DELETE FROM post WHERE post_id = $1;';
+        const query = 'DELETE FROM post WHERE post_id = $1 RETURNING post_id';
         const result = await pool.query(query, [post_id]);
-        return result;
         
+        // Check if any rows were deleted
+        return result; // Will contain the deleted post_id if successful
     } catch (error) {
         console.error('Error deleting post:', error.message);
-        throw new Error('Error deleting post');
-        
+        throw new Error('Failed to delete post');
     }
-    
 }
+
 
 async function updatePost(post_id, updatedTitle, updatedDescription, updatedGenre, updatedImage) {
     try {

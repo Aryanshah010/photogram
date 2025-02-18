@@ -1,10 +1,10 @@
 const express = require('express');
-const upload = require('../Middleware/postUploadMiddleware');
+const upload = require('../Middleware/uploadMiddleware');
 const fs = require('fs');
 const sharp = require('sharp');
 const FileType = require('file-type');
 const { authenticateToken } = require('../middleware/auth');
-const { createPost, getGenreById } = require('../model/postModel');
+const { createPost, getGenreById } = require('../Model/postModel');
 
 const router = express.Router();
 
@@ -24,10 +24,10 @@ router.post(
 
     try {
       // Pre-validate input fields
-      const { title, description, genre_id } = req.body;
+      const { title, description, genre_id,location } = req.body;
 
       if (!title || !genre_id) {
-        return res.status(400).json({ message: 'Title and genre are required.' });
+        return res.status(400).json({ message: 'Title , genre and location are required.' });
       }
 
       // Validate genre_id exists
@@ -63,6 +63,7 @@ router.post(
         title,
         description,
         genre_id,
+        location,
         imagePath,
       });
 

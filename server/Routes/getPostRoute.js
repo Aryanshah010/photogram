@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllPosts } = require('../model/postModel'); // Import the getAllPosts function
+const { getAllPosts } = require('../Model/postModel'); // Import the getAllPosts function
 const router = express.Router();
 
 // Route to get all posts

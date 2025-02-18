@@ -1,6 +1,6 @@
 const express=require('express');
 const bcrypt = require('bcrypt');
-const { findUserByEmail } = require('../Model/signinModel');
+const { findUserByEmail,findUserProfile,createDefaultProfile } = require('../Model/signinModel');
 const { generateToken } = require('../utils/jwt');
 
 const router = express.Router();
@@ -19,6 +19,12 @@ router.post('/signin', async (req, res) => {
         if (!isPasswordCorrect) {
             return res.status(400).json({ message: 'Invalid password' });
         }
+        // Check if profile exists
+        const profileResult = await findUserProfile(user.id);
+        if (profileResult.rows.length === 0) {
+        await createDefaultProfile(user.id); // Create a default profile if not found
+        }
+
          // Generate a JWT
         const token = generateToken(user.id); // Only pass the user ID to the token
         res.status(200).json({ message: 'Sign in successful' ,token,userId:user.id});
@@ -30,4 +36,5 @@ router.post('/signin', async (req, res) => {
     }
         
     });
+    
 module.exports=router;

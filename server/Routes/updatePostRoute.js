@@ -1,7 +1,7 @@
 const express = require('express');
-const { updatePost, getPostById } = require('../model/postModel');
+const { updatePost, getPostById } = require('../Model/postModel');
 const { authenticateToken } = require('../middleware/auth');
-const upload = require('../Middleware/postUploadMiddleware');
+const upload = require('../Middleware/uploadMiddleware');
 const router = express.Router();
 
 // Route to update a post
@@ -9,7 +9,7 @@ router.patch('/post/:id', authenticateToken, upload.single('image'), async (req,
     try {
         const post_id = req.params.id;
         const user_id = req.user.userId; // Extracted from authentication token
-        const { title, description, genre_id } = req.body;
+        const { title, description, genre_id, location } = req.body;
 
         // Get the file path of the uploaded image (if exists)
         const image_path = req.file ? req.file.path : undefined; // Get the image path from multer
@@ -29,9 +29,10 @@ router.patch('/post/:id', authenticateToken, upload.single('image'), async (req,
         const updatedTitle = title || post.title;
         const updatedDescription = description || post.description;
         const updatedGenre = genre_id || post.genre_id;
+        const updatedLocation = location || post.location;
 
         // Update the post
-        const updatedPost = await updatePost(post_id, updatedTitle, updatedDescription, updatedGenre, image_path);
+        const updatedPost = await updatePost(post_id, updatedTitle, updatedDescription, updatedGenre, updatedLocation, image_path);
         res.status(200).json({ message: 'Post updated successfully', post: updatedPost });
 
     } catch (error) {

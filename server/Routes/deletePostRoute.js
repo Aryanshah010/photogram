@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path'); // For correct file path handling
-const { deletePost, getPostById } = require('../model/postModel');
+const { deletePost, getPostById } = require('../Model/postModel');
 const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 

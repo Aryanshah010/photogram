@@ -1,20 +1,18 @@
 const pool = require('../config/database');
 
-async function createPost({userId,title,description,genre_id,imagePath}){
-    try{
-        const query = `INSERT INTO post(user_id,title,description,genre_id,image_path) 
-        VALUES($1,$2,$3,$4,$5) RETURNING *;`;
-        const values = [userId,title,description,genre_id,imagePath];
+async function createPost({userId, title, description, genre_id, location, imagePath}) {
+    try {
+        const query = `INSERT INTO post(user_id, title, description, genre_id, location, image_path) 
+        VALUES($1, $2, $3, $4, $5, $6) RETURNING *;`;
+        const values = [userId, title, description, genre_id, location, imagePath];
         const result = await pool.query(query, values);
         return result;
-
-    }catch(error){
+    } catch (error) {
         console.error('Error inserting post:', error.message);
         throw new Error('Error inserting post');
     }
 }
 
-// Validate genre by ID
 async function getGenreById(genre_id) {
     try {
         const result = await pool.query('SELECT * FROM genre WHERE id = $1', [genre_id]);
@@ -29,27 +27,24 @@ async function deletePost(post_id) {
     try {
         const query = 'DELETE FROM post WHERE post_id = $1 RETURNING post_id';
         const result = await pool.query(query, [post_id]);
-        
-        // Check if any rows were deleted
-        return result; // Will contain the deleted post_id if successful
+        return result;
     } catch (error) {
         console.error('Error deleting post:', error.message);
         throw new Error('Failed to delete post');
     }
 }
 
-
-async function updatePost(post_id, updatedTitle, updatedDescription, updatedGenre, updatedImage) {
+async function updatePost(post_id, updatedTitle, updatedDescription, updatedGenre, updatedLocation, updatedImage) {
     try {
         let query;
         let values;
 
-        if (updatedImage !== undefined) { // Use updatedImage instead of imagePath
-            query = `UPDATE post SET title = $1, description = $2, genre_id = $3, image_path = $4 WHERE post_id = $5 RETURNING *;`;
-            values = [updatedTitle, updatedDescription, updatedGenre, updatedImage, post_id];
+        if (updatedImage !== undefined) {
+            query = `UPDATE post SET title = $1, description = $2, genre_id = $3, location = $4, image_path = $5 WHERE post_id = $6 RETURNING *;`;
+            values = [updatedTitle, updatedDescription, updatedGenre, updatedLocation, updatedImage, post_id];
         } else {
-            query = `UPDATE post SET title = $1, description = $2, genre_id = $3 WHERE post_id = $4 RETURNING *;`;
-            values = [updatedTitle, updatedDescription, updatedGenre, post_id];
+            query = `UPDATE post SET title = $1, description = $2, genre_id = $3, location = $4 WHERE post_id = $5 RETURNING *;`;
+            values = [updatedTitle, updatedDescription, updatedGenre, updatedLocation, post_id];
         }
 
         const result = await pool.query(query, values);
@@ -60,13 +55,11 @@ async function updatePost(post_id, updatedTitle, updatedDescription, updatedGenr
     }
 }
 
-
-// Fetch all posts by a specific user
 async function getPostsByUser(user_id) {
     try {
         const query = `
             SELECT 
-                p.post_id, p.title, p.description, p.genre_id, p.image_path, p.created_at,
+                p.post_id, p.title, p.description, p.genre_id, p.location, p.image_path, p.created_at,
                 u.id AS user_id, u.name
             FROM post p
             JOIN users_registration u ON p.user_id = u.id
@@ -81,43 +74,40 @@ async function getPostsByUser(user_id) {
     }
 }
 
-// Fetch a specific post by ID, including user details
 async function getPostById(post_id) {
     try {
         const query = `
             SELECT 
-                p.post_id, p.title, p.description, p.genre_id, p.image_path, p.created_at,
+                p.post_id, p.title, p.description, p.genre_id, p.location, p.image_path, p.created_at,
                 u.id AS user_id, u.name AS username
             FROM post p
             JOIN users_registration u ON p.user_id = u.id
             WHERE p.post_id = $1;
         `;
         const result = await pool.query(query, [post_id]);
-        return result.rows[0]; // Return single post
+        return result.rows[0];
     } catch (error) {
         console.error('Error fetching post:', error.message);
         throw new Error('Error fetching post');
     }
 }
 
-// Function to fetch all posts
 async function getAllPosts() {
     try {
         const query = `
             SELECT 
-                p.post_id, p.title, p.description, p.genre_id, p.image_path, p.created_at,
+                p.post_id, p.title, p.description, p.genre_id, p.location, p.image_path, p.created_at,
                 u.id AS user_id, u.name AS username
             FROM post p
             JOIN users_registration u ON p.user_id = u.id
             ORDER BY p.created_at DESC;
         `;
         const { rows } = await pool.query(query);
-        return rows; // Return list of posts
+        return rows;
     } catch (error) {
         console.error('Error fetching posts:', error.message);
         throw new Error('Error fetching posts');
     }
 }
 
-
-module.exports = { createPost,getGenreById,deletePost,updatePost,getPostsByUser,getPostById,getAllPosts };
+module.exports = { createPost, getGenreById, deletePost, updatePost, getPostsByUser, getPostById, getAllPosts };

@@ -14,8 +14,8 @@ const deleteFile = (filePath) => {
 };
 
 // Route to delete a post
-router.delete('/post/:id', authenticateToken, async (req, res) => {
-    const post_id = req.params.id;
+router.delete('/post/:post_id', authenticateToken, async (req, res) => {
+    const post_id = req.params.post_id;
     const user_id = req.user.userId; // Extracted from the authentication token
 
     try {

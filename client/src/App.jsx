@@ -27,7 +27,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />   
         <Route path="/upload" element={<UploadPage />} />   
         <Route path="/dashboard" element={<Dashboard />} />   
-        <Route path="/edit-photo" element={<UpdatePhoto />} />  
+        <Route path="/edit-photo/:post_id" element={<UpdatePhoto />} />  
         <Route path="/view-photo/:post_id" element={<ViewPhoto />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/edit-profile" element={<EditProfile />} />

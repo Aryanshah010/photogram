@@ -11,6 +11,8 @@ function Dashboard() {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [genres, setGenres] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [profileImage, setProfileImage] = useState(null);
+  const [likedPosts, setLikedPosts] = useState({});
   const dropdownRef = useRef(null);
   const genredropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -41,6 +43,47 @@ function Dashboard() {
       }
     };
     fetchPosts();
+  }, []);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const profile = response.data.profile;
+        setProfileImage(profile.image_path ? `${import.meta.env.VITE_API_URL}${profile.image_path}` : null);
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    const fetchLikedPosts = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/liked-posts`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const likedPosts = response.data.reduce((acc, post) => {
+          acc[post.post_id] = true;
+          return acc;
+        }, {});
+        setLikedPosts(likedPosts);
+      } catch (error) {
+        console.error('Failed to fetch liked posts:', error);
+      }
+    };
+    fetchLikedPosts();
   }, []);
 
   const toggleGenreDropdown = () => {
@@ -77,12 +120,39 @@ function Dashboard() {
     }
   };
 
+  const handleLikeToggle = async (post_id) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (likedPosts[post_id]) {
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/like/${post_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setLikedPosts((prev) => ({ ...prev, [post_id]: false }));
+      } else {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/like/${post_id}`, {}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setLikedPosts((prev) => ({ ...prev, [post_id]: true }));
+      }
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+    }
+  };
+
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
+
+  const filteredPosts = selectedGenre
+    ? posts.filter((post) => post.genre_name === selectedGenre)
+    : posts;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -150,11 +220,20 @@ function Dashboard() {
 
           {/* Profile Icon */}
           <div className="relative" ref={dropdownRef}>
-            <FaUserCircle
-              size={30}
-              className="text-gray-700 cursor-pointer"
-              onClick={toggleDropdown}
-            />
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-8 h-8 rounded-full cursor-pointer"
+                onClick={toggleDropdown}
+              />
+            ) : (
+              <FaUserCircle
+                size={30}
+                className="text-gray-700 cursor-pointer"
+                onClick={toggleDropdown}
+              />
+            )}
             {isDropdownVisible && (
               <div className="absolute left-1/2 transform -translate-x-1/2 mt-6 bg-white shadow-md w-15 p-1">
                 <button className="block px-2 py-1 text-gray-700 text-sm hover:bg-gray-200" onClick={handleProfile}>Profile</button>
@@ -169,16 +248,20 @@ function Dashboard() {
       <div className="p-5">
         <h1 className="text-2xl font-bold mb-5 text-center">Explore Photos</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {posts.map((post) => (
-            <div key={post.post_id} onClick={()=>handlePhotoClick(post.post_id)} className="relative overflow-hidden  shadow-lg group">
+          {filteredPosts.map((post) => (
+            <div key={post.post_id} className="relative overflow-hidden shadow-lg group">
               <img
                 src={`${import.meta.env.VITE_API_URL}${post.image_path}`}
                 alt={post.title}
                 className="w-full h-60 object-cover group-hover:scale-105 transition duration-300 ease-in-out"
+                onClick={() => handlePhotoClick(post.post_id)}
               />
               <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">
                 <span className="text-sm">{post.username}</span>
-                <FaHeart className="text-red-500" />
+                <FaHeart
+                  className={`text-red-500 cursor-pointer ${likedPosts[post.post_id] ? 'text-red-500' : 'text-gray-500'}`}
+                  onClick={() => handleLikeToggle(post.post_id)}
+                />
               </div>
             </div>
           ))}

@@ -1,5 +1,5 @@
 const express = require('express');
-// const { deleteUserData } = require('../models/DeleteMeModel');
+const { deleteUserData } = require('../Model/DeleteMeModel');
 const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 

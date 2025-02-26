@@ -35,3 +35,6 @@ Thumbs.db
 
 # Other
 *.lock 
+
+uploads/*
+*.uploads

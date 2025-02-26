@@ -1,5 +1,5 @@
 const express =require('express');  
-const { getParticularPhoto, getPostById }=require('../Model/postModel');
+const {  getPostById }=require('../Model/postModel');
 const router=express.Router();
 
 router.get('/post/:post_id',async(req,res)=>{

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
 import axios from "../api/axios";
 
 const ViewPhoto = () => {
@@ -45,15 +46,18 @@ const ViewPhoto = () => {
           />
           {/* User Profile Section */}
           <div className="flex bottom left-1 flex items-center p-2">
-            <img
-              src={`${import.meta.env.VITE_API_URL}${photoDetails.user_profile_image}`}
-              alt="User Profile"
-              className="w-10 h-10 rounded-full border"
-            />
+            {photoDetails.user_profile_image ? (
+              <img
+                src={`${import.meta.env.VITE_API_URL}${photoDetails.user_profile_image}`}
+                alt="User Profile"
+                className="w-10 h-10 rounded-full border"
+              />
+            ) : (
+              <FaUserCircle size={40} className="text-gray-700" />
+            )}
             <p className="ml-2 text-gray-800 font-medium">{photoDetails.username}</p>
           </div>
         </div>
-
         {/* Details Section */}
         <div className="flex-1 space-y-4">
           <h2 className="text-2xl font-semibold text-gray-800">Photo Details</h2>
@@ -79,9 +83,15 @@ const ViewPhoto = () => {
           </div>
           <div>
             <p className="text-gray-600 font-medium">Date of Upload:</p>
-            <p className="text-gray-900">{new Date(photoDetails.created_at).toISOString().split('T')[0]}</p>
-          </div>
-          <div className="flex space-x-4 mt-6">
+            <p className="text-gray-900">
+            {new Date(photoDetails.created_at).toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            })}
+            </p>
+            </div>
+             <div className="flex space-x-4 mt-6">
             <button onClick={() => navigate(`/edit-photo/${post_id}`)} className="bg-blue-500 text-white px-2 py-0 rounded-lg hover:bg-blue-600">
               Edit Photo
             </button>

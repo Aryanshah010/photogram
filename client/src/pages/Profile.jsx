@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import bbt from "../assets/bbt.jpg";
+import axios from "../api/axios";
+import { FaUserCircle } from "react-icons/fa"; // Import the FaUserCircle icon
 
 function Profile() {
   const [username, setUsername] = useState("Username");
@@ -10,15 +11,73 @@ function Profile() {
   const [realName, setRealName] = useState("Real Name");
   const [activeTab, setActiveTab] = useState("Photos");
   const [dateJoined, setDateJoined] = useState("Date");
+  const [totalUploads, setTotalUploads] = useState(0);
+  const [totalLikes, setTotalLikes] = useState(0);
+  const [photosLiked, setPhotosLiked] = useState(0);
+  const [userPhotos, setUserPhotos] = useState([]);
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const profile = response.data.profile;
+        setUsername(profile.username);
+        setRealName(profile.fullname);
+        setLocation(`${profile.city || "City"}, ${profile.country || "Country"}`);
+        setBio(profile.bio);
+        const createdAtLocal = new Date(profile.created_at).toLocaleDateString(undefined, {
+          year: "numeric",
+          day: "2-digit",
+          month: "2-digit",
+        });
+        setDateJoined(createdAtLocal);        
+        setAvatar(profile.image_path ? `${import.meta.env.VITE_API_URL}${profile.image_path}` : null); // Set avatar to null if image_path is not available
+        setTotalUploads(profile.total_uploads);
+        setTotalLikes(profile.total_likes);
+        setPhotosLiked(profile.photos_liked);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    const fetchUserPhotos = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/user-photos`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setUserPhotos(response.data.photos);
+      } catch (error) {
+        console.error('Error fetching user photos:', error);
+      }
+    };
+
+    fetchProfile();
+    fetchUserPhotos();
+  }, []);
+
   const handleEditClick = () => {
-    navigate('/edit-profile');
+    navigate('/edit-profile/');
   };
 
   const handleHome = () => {
     navigate('/dashboard');
+  };
+
+
+  const handlePhotoClick = (post_id) => {
+    navigate(`/view-photo/${post_id}`);
   };
 
   return (
@@ -32,11 +91,15 @@ function Profile() {
             Home
           </div>
           <div className="mb-3">
-            <img
-              src={bbt}
-              alt="User Profile"
-              className="w-56 h-56 rounded-full border"
-            />
+            {avatar ? (
+              <img
+                src={avatar}
+                alt="User Profile"
+                className="w-56 h-56 rounded-full border"
+              />
+            ) : (
+              <FaUserCircle className="w-56 h-56 text-gray-400" />
+            )}
           </div>
           <div className="text-x font-semibold">{realName}</div>
         </div>
@@ -64,15 +127,15 @@ function Profile() {
         </div>
         <div>
           <p className="text-gray-500">Total Upload</p>
-          <p className="font-semibold">5</p> {/* Replace with dynamic value */}
+          <p className="font-semibold">{totalUploads}</p>
         </div>
         <div>
           <p className="text-gray-500">Total Likes</p>
-          <p className="font-semibold">10</p> {/* Replace with dynamic value */}
+          <p className="font-semibold">{totalLikes}</p>
         </div>
         <div>
           <p className="text-gray-500">Photo Liked</p>
-          <p className="font-semibold">10</p> {/* Replace with dynamic value */}
+          <p className="font-semibold">{photosLiked}</p>
         </div>
       </div>
 
@@ -91,6 +154,24 @@ function Profile() {
             Photo Liked
         </a>
       </div>
+
+      {/* User Photos */}
+      {activeTab === "Photos" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {userPhotos.map((photo) => (
+            <div key={photo.post_id} onClick={()=>handlePhotoClick(photo.post_id)} className="relative overflow-hidden  shadow-lg group">
+              <img
+                src={`${import.meta.env.VITE_API_URL}${photo.image_path}`}
+                alt={photo.title}
+                className="w-full h-60 object-cover group-hover:scale-105 transition duration-300 ease-in-out"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">
+                <span className="text-sm">{photo.title}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

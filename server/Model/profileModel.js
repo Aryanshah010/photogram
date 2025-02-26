@@ -1,26 +1,32 @@
 const pool = require('../config/database');
 
 async function getProfileById(userId) {
-    try {
-        const query = `SELECT 
-        p.profile_id, p.fullname, p.city, p.country, p.bio, p.image_path, p.created_at,
-        u.id AS user_id, u.name AS username ,u.created_at
-        FROM user_profile p
-        JOIN users_registration u ON p.user_id = u.id
-        WHERE p.user_id = $1;`;  
+  try {
+      const query = `
+          SELECT 
+              p.profile_id, p.fullname, p.city, p.country, p.bio, p.image_path, p.created_at,
+              u.id AS user_id, u.name AS username, u.created_at AS user_created_at,
+              (SELECT COUNT(*) FROM post WHERE user_id = $1) AS total_uploads,
+              (SELECT COUNT(*) FROM likes WHERE user_id = $1) AS photos_liked,
+              (SELECT COUNT(*) FROM likes l JOIN post p ON l.post_id = p.post_id WHERE p.user_id = $1) AS total_likes
+          FROM user_profile p
+          JOIN users_registration u ON p.user_id = u.id
+          WHERE p.user_id = $1;
+      `;
 
-        const result = await pool.query(query, [userId]);
+      const result = await pool.query(query, [userId]);
 
-        if (result.rows.length === 0) {
-            throw new Error('User profile not found');
-        }
+      if (result.rows.length === 0) {
+          throw new Error('User profile not found');
+      }
 
-        return result.rows[0];
-    } catch (error) {
-        console.error('Error fetching profile:', error.message);
-        throw new Error('Could not fetch profile');
-    }
+      return result.rows[0];
+  } catch (error) {
+      console.error('Error fetching profile:', error.message);
+      throw new Error('Could not fetch profile');
+  }
 }
+
 
 async function updateProfile({ userId, fullname, city, country, bio, imagePath }) {
     if (!userId) {
@@ -55,12 +61,6 @@ async function updateProfile({ userId, fullname, city, country, bio, imagePath }
     }
 }
 
-async function countTotalUpload(userId){
-    const query=`SELECT COUNT(*) FROM post WHERE post_id=$1`;
-    const result=await pool.query(query,[userId]);
-    return result.rows[0].count;
-}
-
 async function getProfilePic(userId){
     const query=`SELECT image_path FROM user_profile WHERE user_id=$1`;
     const result=await pool.query(query,[userId]);
@@ -72,6 +72,5 @@ async function getProfilePic(userId){
 module.exports = {
     updateProfile,
     getProfileById,
-    countTotalUpload,
     getProfilePic,
   };

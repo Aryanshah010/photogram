@@ -34,19 +34,15 @@ async function deletePost(post_id) {
     }
 }
 
-async function updatePost(post_id, updatedTitle, updatedDescription, updatedGenre, updatedLocation, updatedImage) {
+async function updatePost({ post_id, title, description, genre_id, location, imagePath }) {
     try {
-        let query;
-        let values;
-
-        if (updatedImage !== undefined) {
-            query = `UPDATE post SET title = $1, description = $2, genre_id = $3, location = $4, image_path = $5 WHERE post_id = $6 RETURNING *;`;
-            values = [updatedTitle, updatedDescription, updatedGenre, updatedLocation, updatedImage, post_id];
-        } else {
-            query = `UPDATE post SET title = $1, description = $2, genre_id = $3, location = $4 WHERE post_id = $5 RETURNING *;`;
-            values = [updatedTitle, updatedDescription, updatedGenre, updatedLocation, post_id];
-        }
-
+        const query = `
+            UPDATE post
+            SET title = $1, description = $2, genre_id = $3, location = $4, image_path = $5,updated_at = NOW()
+            WHERE post_id = $6
+            RETURNING *;
+        `;
+        const values = [title, description, genre_id, location, imagePath, post_id];
         const result = await pool.query(query, values);
         return result.rows[0];
     } catch (error) {
@@ -55,11 +51,12 @@ async function updatePost(post_id, updatedTitle, updatedDescription, updatedGenr
     }
 }
 
+
 async function getPostsByUser(user_id) {
     try {
         const query = `
             SELECT 
-                p.post_id, p.title, p.description, p.genre_id, p.location, p.image_path, p.created_at,
+                p.post_id, p.title,p.image_path, p.created_at,
                 u.id AS user_id, u.name
             FROM post p
             JOIN users_registration u ON p.user_id = u.id
@@ -114,3 +111,4 @@ async function getAllPosts() {
 }
 
 module.exports = { createPost, getGenreById, deletePost, updatePost, getPostsByUser, getPostById, getAllPosts };
+ 

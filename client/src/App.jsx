@@ -5,6 +5,10 @@ import SignIn from './pages/SignIn';
 import camera from './assets/camera.png';
 import Dashboard from './pages/Dashboard';
 import UploadPage from './pages/Upload';
+import UpdatePhoto from './pages/Edit-Photo';
+import ViewPhoto from './pages/ViewPhoto';
+import Profile from './pages/profile';
+import EditProfile from './pages/Edit-Profile';
 
 function App() {
   React.useEffect(() => {
@@ -23,6 +27,10 @@ function App() {
         <Route path="/signup" element={<SignUp />} />   
         <Route path="/upload" element={<UploadPage />} />   
         <Route path="/dashboard" element={<Dashboard />} />   
+        <Route path="/edit-photo" element={<UpdatePhoto />} />  
+        <Route path="/view-photo/:post_id" element={<ViewPhoto />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
       </Routes>
     </Router>
 

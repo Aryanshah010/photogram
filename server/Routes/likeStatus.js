@@ -6,7 +6,7 @@ const router=express.Router();
 router.get('/like/:post_id', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
-        const postId = parseInt(req.params.postId, 10);
+        const postId = parseInt(req.params.post_id, 10);
         if (isNaN(postId)) {
             return res.status(400).json({ message: 'Invalid Post ID' });
         }

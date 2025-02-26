@@ -16,6 +16,7 @@ const dislikePostRoute=require('./Routes/dislikePostRoute');
 const likePostStatus=require('./Routes/likeStatus');
 const getPorfileRoute=require('./Routes/getProfileRoute');
 const deleteMeRoute=require('./Routes/deleteMeRoute');
+const getParticularPhotoRoute=require('./Routes/getParticularPhotoRoute');
 
 
 const app = express();
@@ -49,6 +50,7 @@ app.use('/api',dislikePostRoute);
 app.use('/api',getPorfileRoute);
 app.use('/api',deleteMeRoute);
 app.use('/api',likePostStatus);
+app.use('/api',getParticularPhotoRoute);
 
 //start server
 const PORT = process.env.PORT || 3005;

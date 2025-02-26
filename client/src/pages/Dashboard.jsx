@@ -1,34 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaHeart } from "react-icons/fa";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import camera from "../assets/camera.png";
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
-
-const photos = [
-  "https://source.unsplash.com/600x400/?wildlife",
-  "https://source.unsplash.com/600x400/?church",
-  "https://source.unsplash.com/600x400/?bird",
-  "https://source.unsplash.com/600x400/?sunset",
-  "https://source.unsplash.com/600x400/?flower",
-  "https://source.unsplash.com/600x400/?squirrel",
-  "https://source.unsplash.com/600x400/?blossom",
-  "https://source.unsplash.com/600x400/?landscape",
-  "https://source.unsplash.com/600x400/?wave",
-  "https://source.unsplash.com/600x400/?train",
-  "https://source.unsplash.com/600x400/?sunrise",
-  "https://source.unsplash.com/600x400/?portrait",
-  "https://source.unsplash.com/600x400/?bridge",
-];
 
 function Dashboard() {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [isGenreDropdownVisible, setGenreDropdownVisible] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [genres, setGenres] = useState([]);
+  const [posts, setPosts] = useState([]);
   const dropdownRef = useRef(null);
   const genredropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  const handlePhotoClick = (post_id) => {
+    navigate(`/view-photo/${post_id}`);
+  };
 
   useEffect(() => {
     const fetchGenres = async () => {
@@ -40,6 +29,18 @@ function Dashboard() {
       }
     };
     fetchGenres();
+  }, []);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/post`);
+        setPosts(response.data);
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+      }
+    };
+    fetchPosts();
   }, []);
 
   const toggleGenreDropdown = () => {
@@ -65,7 +66,7 @@ function Dashboard() {
   };
 
   const handleProfile = () => {
-    console.log("Profile clicked");
+    navigate('/profile');
   };
 
   const handleLogout = () => {
@@ -97,50 +98,50 @@ function Dashboard() {
         <div className="flex items-center space-x-6">
           <a href="#" className="text-gray-700 hover:text-black">Home</a>
 
-      {/* Genre Dropdown */}
-            <div className="relative" ref={genredropdownRef}>
-              <button 
-                onClick={toggleGenreDropdown} 
-                className="flex items-center space-x-1 text-gray-700 hover:text-black"
-              >
-                <span>{'Genres'}</span>
-                <MdKeyboardArrowDown size={20} />
-              </button>
-              {isGenreDropdownVisible && (
-                <div className="absolute right-0 mt-6 bg-white shadow-md w-96 transform "> {/* Adjusted margin and translate */}
-                  <div className="flex">
-                    {/* First Column */}
-                    <div className="flex-1">
-                      {genres.slice(0, Math.ceil(genres.length / 2)).map((genre) => (
-                        <button 
-                          key={genre.genre_id} 
-                          className="block w-full px-4 py-2 text-gray-700 text-center hover:bg-gray-200"
-                          onClick={() => handleGenreSelect(genre)}
-                        >
-                          {genre.name}
-                        </button>
-                      ))}
-                    </div>
+          {/* Genre Dropdown */}
+          <div className="relative" ref={genredropdownRef}>
+            <button 
+              onClick={toggleGenreDropdown} 
+              className="flex items-center space-x-1 text-gray-700 hover:text-black"
+            >
+              <span>{'Genres'}</span>
+              <MdKeyboardArrowDown size={20} />
+            </button>
+            {isGenreDropdownVisible && (
+              <div className="absolute right-0 mt-6 bg-white shadow-md w-96 transform">
+                <div className="flex">
+                  {/* First Column */}
+                  <div className="flex-1">
+                    {genres.slice(0, Math.ceil(genres.length / 2)).map((genre) => (
+                      <button 
+                        key={`genre-col1-${genre.id}`}
+                        className="block w-full px-4 py-2 text-gray-700 text-center hover:bg-gray-200"
+                        onClick={() => handleGenreSelect(genre)}
+                      >
+                        {genre.name}
+                      </button>
+                    ))}
+                  </div>
 
-                    {/* Second Column */}
-                    <div className="flex-1">
-                      {genres.slice(Math.ceil(genres.length / 2)).map((genre) => (
-                        <button 
-                          key={genre.genre_id} 
-                          className="block w-full px-4 py-2 text-gray-700 text-center hover:bg-gray-200"
-                          onClick={() => handleGenreSelect(genre)}
-                        >
-                          {genre.name}
-                        </button>
-                      ))}
-                    </div>
+                  {/* Second Column */}
+                  <div className="flex-1">
+                    {genres.slice(Math.ceil(genres.length / 2)).map((genre) => (
+                      <button 
+                        key={`genre-col2-${genre.id}`}
+                        className="block w-full px-4 py-2 text-gray-700 text-center hover:bg-gray-200"
+                        onClick={() => handleGenreSelect(genre)}
+                      >
+                        {genre.name}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
 
           {/* Upload Button */}
-          <button className="flex items-center space-x-2 px-3 py-1 border-2 border-black text-black bg-white rounded-full hover:bg-blue-500 hover:text-white transition">
+          <button onClick={() => navigate('/upload')} className="flex items-center space-x-2 px-3 py-1 border-2 border-black text-black bg-white rounded-full hover:bg-blue-500 hover:text-white transition">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
               <path d="M12 19V6M5 12l7-7 7 7" />
             </svg>
@@ -168,13 +169,17 @@ function Dashboard() {
       <div className="p-5">
         <h1 className="text-2xl font-bold mb-5 text-center">Explore Photos</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {photos.map((src, index) => (
-            <div key={index} className="overflow-hidden rounded-2xl shadow-lg">
+          {posts.map((post) => (
+            <div key={post.post_id} onClick={()=>handlePhotoClick(post.post_id)} className="relative overflow-hidden  shadow-lg group">
               <img
-                src={src}
-                alt={`Photo ${index + 1}`}
-                className="w-full h-60 object-cover hover:scale-105 transition duration-300 ease-in-out"
+                src={`${import.meta.env.VITE_API_URL}${post.image_path}`}
+                alt={post.title}
+                className="w-full h-60 object-cover group-hover:scale-105 transition duration-300 ease-in-out"
               />
+              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">
+                <span className="text-sm">{post.username}</span>
+                <FaHeart className="text-red-500" />
+              </div>
             </div>
           ))}
         </div>

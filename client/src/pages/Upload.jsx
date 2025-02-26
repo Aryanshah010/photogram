@@ -11,8 +11,10 @@ function UploadPage() {
   const [location, setLocation] = useState("");
   const [descriptionCount, setDescriptionCount] = useState(0);
   const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [isFormValid, setIsFormValid] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -36,7 +38,6 @@ function UploadPage() {
       .join(" "); // Rejoin words
   };
 
-
   const handleFileUpload = () => {
     fileInputRef.current.click();
   };
@@ -44,9 +45,17 @@ function UploadPage() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Store the actual file for upload
+      setImage(file);
+      
+      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImage(e.target.result);
+        setImagePreview(e.target.result);
+        setErrorMessage("");
+      };
+      reader.onerror = () => {
+        setErrorMessage("Error reading file");
       };
       reader.readAsDataURL(file);
     }
@@ -54,6 +63,7 @@ function UploadPage() {
 
   const removeImage = () => {
     setImage(null);
+    setImagePreview(null);
   };
 
   useEffect(() => {
@@ -64,62 +74,66 @@ function UploadPage() {
 
   const handleSave = async () => {
     if (!isFormValid) {
-        alert("Please fill all fields and upload an image.");
-        return;
-    };
+      setErrorMessage("Please fill all fields and upload an image.");
+      return;
+    }
 
     if (!image) {
-        alert('Please upload an image before saving.');
-        return;
+      setErrorMessage("Please upload an image before saving.");
+      return;
     }
 
     setUploading(true);
+    setErrorMessage("");
+
     try {
       const formData = new FormData();
+      const userId = localStorage.getItem('userId');
+      formData.append("userId", userId);
       formData.append("title", title);
       formData.append("description", description);
       formData.append("genre_id", selectedGenre);
       formData.append("location", location);
+      formData.append("image", image);
 
-      if (image) {
-        const response = await fetch(image);
-        const blob = await response.blob();
-        const file = new File([blob], "uploaded_image.jpg", { type: blob.type });
-        formData.append("image", file);
-      }
-
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/post`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/post`, formData, {
         headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('token')}`, // Ensure token is stored
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
       alert("Picture Uploaded successfully!");
       navigate("/dashboard");
     } catch (error) {
-        console.error('Error uploading content:', error);
-        if (error.response && error.response.data && error.response.data.message) {
-            alert(error.response.data.message); // Display server error message
-        } else {
-            alert('An error occurred while uploading content. Please try again.');
-        }
+      console.error('Error uploading Photo:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        setErrorMessage(error.response.data.message); // Display server error message
+      } else {
+        setErrorMessage('An error occurred while uploading Photo. Please try again.');
+      }
     } finally {
-        setUploading(false);
+      setUploading(false);
     }
-};
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white w-full max-w-6xl rounded-lg shadow-lg p-6">
         <h1 className="text-center text-3xl font-semibold text-gray-700 mb-6">Upload Photo with details</h1>
+        
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {errorMessage}
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="flex flex-col items-center justify-center p-4 border rounded-lg bg-gray-200">
-            {image ? (
+            {imagePreview ? (
               <div className="relative">
-                <img src={image} alt="Preview" className="rounded-lg w-full" />
-                <button className="absolute top-1 right-1 bg-red-500 text-red " onClick={removeImage}>
+                <img src={imagePreview} alt="Preview" className="rounded-lg w-full" />
+                <button className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full" onClick={removeImage}>
                   ✖
                 </button>
               </div>
@@ -144,20 +158,20 @@ function UploadPage() {
             </div>
 
             <div className="relative">
-                <label className="block text-gray-700 text-lg font-medium">Description</label>
-                <textarea
-                    className="w-full px-4 py-2 border rounded-lg"
-                    rows="3"
-                    maxLength={700}
-                    placeholder="Describe the content (10-700 characters)"
-                    value={description}
-                    onChange={(e) => {
-                    setDescription(e.target.value);
-                    setDescriptionCount(e.target.value.length);
-                    }}
-                ></textarea>
-                <div className="absolute bottom-2 right-4 text-sm text-gray-500">{descriptionCount}/700</div>
-                </div>
+              <label className="block text-gray-700 text-lg font-medium">Description</label>
+              <textarea
+                className="w-full px-4 py-2 border rounded-lg"
+                rows="3"
+                maxLength={700}
+                placeholder="Describe the content (10-700 characters)"
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  setDescriptionCount(e.target.value.length);
+                }}
+              ></textarea>
+              <div className="absolute bottom-2 right-4 text-sm text-gray-500">{descriptionCount}/700</div>
+            </div>
             <div>
               <label className="block text-gray-700 text-lg font-medium">Location</label>
               <input
@@ -176,13 +190,13 @@ function UploadPage() {
                 value={selectedGenre}
                 onChange={(e) => setSelectedGenre(e.target.value)}
               >
-                <option value="">Select Genre</option>
+                <option key="default" value="">Select Genre</option>
                 {genres.length > 0 ? (
                   genres.map((genre) => (
-                    <option key={genre.genre_id} value={genre.genre_id}>{genre.name}</option>
+                    <option key={genre.id} value={genre.id}>{genre.name}</option>
                   ))
                 ) : (
-                  <option disabled>Loading genres...</option>
+                  <option key="loading" disabled>Loading genres...</option>
                 )}
               </select>
             </div>

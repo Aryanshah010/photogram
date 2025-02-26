@@ -15,8 +15,8 @@ const findUserProfile = async (userId) => {
 // Function to create a default profile
 const createDefaultProfile = async (userId) => {
     const query = `
-        INSERT INTO user_profile (user_id, fullname, city, country, bio, image_path)
-        VALUES ($1, 'Real Name', 'city', 'country', 'biography', '/uploads/defaultAvatar.jpg')`;
+        INSERT INTO user_profile (user_id, fullname, city, country, bio)
+        VALUES ($1, 'Real Name', 'city', 'country', 'biography')`;
     return await pool.query(query, [userId]);
 };
 

@@ -78,10 +78,13 @@ async function getPostById(post_id) {
     try {
         const query = `
             SELECT 
-                p.post_id, p.title, p.description, p.genre_id, p.location, p.image_path, p.created_at,
-                u.id AS user_id, u.name AS username
+                p.post_id, p.title, p.description, p.genre_id,g.name AS genre_name, p.location, p.image_path, p.created_at,
+                u.id AS user_id, u.name AS username, up.image_path AS user_profile_image,
+                (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.post_id) AS likes
             FROM post p
             JOIN users_registration u ON p.user_id = u.id
+            LEFT JOIN user_profile up ON u.id = up.user_id
+            JOIN genre g ON p.genre_id = g.id
             WHERE p.post_id = $1;
         `;
         const result = await pool.query(query, [post_id]);

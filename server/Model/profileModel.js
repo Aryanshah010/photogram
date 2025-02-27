@@ -61,16 +61,28 @@ async function updateProfile({ userId, fullname, city, country, bio, imagePath }
     }
 }
 
-async function getProfilePic(userId){
-    const query=`SELECT image_path FROM user_profile WHERE user_id=$1`;
-    const result=await pool.query(query,[userId]);
-    return result.rows[0].image_path; 
-}
-
-
+// Function to get liked photos for a user
+const getLikedPhotos = async (userId) => {
+  try {
+    const query = `
+      SELECT 
+        p.post_id, p.title, p.image_path, u.name as username
+      FROM likes l
+      JOIN post p ON l.post_id = p.post_id
+      JOIN users_registration u ON p.user_id = u.id
+      WHERE l.user_id = $1
+      ORDER BY l.liked_at DESC;
+    `;
+    const { rows } = await pool.query(query, [userId]);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching liked photos:', error.message);
+    throw new Error('Error fetching liked photos');
+  }
+};
 
 module.exports = {
     updateProfile,
     getProfileById,
-    getProfilePic,
+    getLikedPhotos
   };

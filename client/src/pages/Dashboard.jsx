@@ -36,14 +36,16 @@ function Dashboard() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/post`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/post`, {
+          params: { genre_id: selectedGenre ? selectedGenre.id : undefined },
+        });
         setPosts(response.data);
       } catch (error) {
         console.error('Failed to fetch posts:', error);
       }
     };
     fetchPosts();
-  }, []);
+  }, [selectedGenre]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -65,7 +67,7 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const fetchLikedPosts = async () => {
+    const fetchInitialLikeStates = async () => {
       try {
         const token = localStorage.getItem('authToken');
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/liked-posts`, {
@@ -74,16 +76,18 @@ function Dashboard() {
           },
         });
 
-        const likedPosts = response.data.reduce((acc, post) => {
+        const likeStates = response.data.reduce((acc, post) => {
           acc[post.post_id] = true;
           return acc;
         }, {});
-        setLikedPosts(likedPosts);
+
+        setLikedPosts(likeStates);
       } catch (error) {
         console.error('Failed to fetch liked posts:', error);
       }
     };
-    fetchLikedPosts();
+
+    fetchInitialLikeStates();
   }, []);
 
   const toggleGenreDropdown = () => {
@@ -91,7 +95,13 @@ function Dashboard() {
   };
 
   const handleGenreSelect = (genre) => {
-    setSelectedGenre(genre.name); // Set selected genre name
+    if (selectedGenre === genre) {
+      // If clicking the same genre again, clear the filter
+      setSelectedGenre(null);
+    } else {
+      // Set the new genre filter
+      setSelectedGenre(genre);
+    }
     setGenreDropdownVisible(false); // Close the dropdown after selection
   };
 
@@ -120,26 +130,40 @@ function Dashboard() {
     }
   };
 
-  const handleLikeToggle = async (post_id) => {
+  const handleLikeToggle = async (postId, e) => {
+    e.stopPropagation(); // Prevent image click when clicking the heart
+    
     try {
       const token = localStorage.getItem('authToken');
-      if (likedPosts[post_id]) {
-        await axios.delete(`${import.meta.env.VITE_API_URL}/api/like/${post_id}`, {
+      
+      if (likedPosts[postId]) {
+        // Unlike post
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/like/${postId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        setLikedPosts((prev) => ({ ...prev, [post_id]: false }));
+        
+        setLikedPosts(prev => ({
+          ...prev,
+          [postId]: false
+        }));
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/like/${post_id}`, {}, {
+        // Like post
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/like/${postId}`, {}, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        setLikedPosts((prev) => ({ ...prev, [post_id]: true }));
+        
+        setLikedPosts(prev => ({
+          ...prev,
+          [postId]: true
+        }));
       }
     } catch (error) {
       console.error('Failed to toggle like:', error);
+      alert('Failed to update like status. Please try again.');
     }
   };
 
@@ -150,8 +174,14 @@ function Dashboard() {
     };
   }, []);
 
+  const handleHomeClick = (e) => {
+    e.preventDefault();
+    navigate('/dashboard');
+    setSelectedGenre(null);
+  };
+
   const filteredPosts = selectedGenre
-    ? posts.filter((post) => post.genre_name === selectedGenre)
+    ? posts.filter((post) => post.genre_id === selectedGenre.id)
     : posts;
 
   return (
@@ -166,7 +196,7 @@ function Dashboard() {
 
         {/* Navigation Links */}
         <div className="flex items-center space-x-6">
-          <a href="#" className="text-gray-700 hover:text-black">Home</a>
+        <a href="#" className="text-gray-700 hover:text-black" onClick={handleHomeClick}>Home</a>
 
           {/* Genre Dropdown */}
           <div className="relative" ref={genredropdownRef}>
@@ -174,18 +204,20 @@ function Dashboard() {
               onClick={toggleGenreDropdown} 
               className="flex items-center space-x-1 text-gray-700 hover:text-black"
             >
-              <span>{'Genres'}</span>
+              <span>{selectedGenre ? selectedGenre.name : 'Genres'}</span>
               <MdKeyboardArrowDown size={20} />
             </button>
             {isGenreDropdownVisible && (
-              <div className="absolute right-0 mt-6 bg-white shadow-md w-96 transform">
-                <div className="flex">
+              <div className="absolute right-0 mt-2 bg-white shadow-md w-96 transform z-50">
+                <div className="flex rounded-lg overflow-hidden border border-gray-200">
                   {/* First Column */}
-                  <div className="flex-1">
+                  <div className="flex-1 border-r border-gray-200">
                     {genres.slice(0, Math.ceil(genres.length / 2)).map((genre) => (
                       <button 
                         key={`genre-col1-${genre.id}`}
-                        className="block w-full px-4 py-2 text-gray-700 text-center hover:bg-gray-200"
+                        className={`block w-full px-4 py-2 text-gray-700 text-left hover:bg-gray-100 transition-colors ${
+                         selectedGenre && selectedGenre.id === genre.id ? 'bg-blue-100' : ''
+                        }`}
                         onClick={() => handleGenreSelect(genre)}
                       >
                         {genre.name}
@@ -198,7 +230,9 @@ function Dashboard() {
                     {genres.slice(Math.ceil(genres.length / 2)).map((genre) => (
                       <button 
                         key={`genre-col2-${genre.id}`}
-                        className="block w-full px-4 py-2 text-gray-700 text-center hover:bg-gray-200"
+                        className={`block w-full px-4 py-2 text-gray-700 text-left hover:bg-gray-100 transition-colors ${
+                          selectedGenre && selectedGenre.id === genre.id ? 'bg-blue-100' : ''
+                        }`}
                         onClick={() => handleGenreSelect(genre)}
                       >
                         {genre.name}
@@ -259,8 +293,11 @@ function Dashboard() {
               <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">
                 <span className="text-sm">{post.username}</span>
                 <FaHeart
-                  className={`text-red-500 cursor-pointer ${likedPosts[post.post_id] ? 'text-red-500' : 'text-gray-500'}`}
-                  onClick={() => handleLikeToggle(post.post_id)}
+                  className={`cursor-pointer transition-colors duration-200 ${
+                    likedPosts[post.post_id] ? 'text-red-500' : 'text-gray-400'
+                  }`}
+                  size={20}
+                  onClick={(e) => handleLikeToggle(post.post_id, e)}
                 />
               </div>
             </div>

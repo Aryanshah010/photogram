@@ -37,12 +37,24 @@ const getLikesCount = async (postId) => {
     }
 };
 
-const likeStatus = async ({ userId, postId }) => {
+const likeStatus = async ({ userId, postId = null }) => {
     try {
-        const query = `SELECT EXISTS(SELECT 1 FROM likes WHERE post_id = $1 AND user_id = $2) AS liked;`;
-        const values = [postId, userId];
-        const { rows } = await pool.query(query, values);
-        return { liked: rows[0].liked };
+        let query;
+        let values;
+        
+        if (postId) {
+            // Get like status for a specific post
+            query = `SELECT EXISTS(SELECT 1 FROM likes WHERE post_id = $1 AND user_id = $2) AS liked;`;
+            values = [postId, userId];
+            const { rows } = await pool.query(query, values);
+            return { liked: rows[0].liked };
+        } else {
+            // Get all liked posts for the user
+            query = `SELECT post_id FROM likes WHERE user_id = $1`;
+            values = [userId];
+            const { rows } = await pool.query(query, values);
+            return rows;
+        }
     } catch (error) {
         return { error: error.message };
     }

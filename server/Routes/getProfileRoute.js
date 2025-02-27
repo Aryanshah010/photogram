@@ -1,5 +1,5 @@
 const express = require('express');
-const  {getProfileById}=require('../Model/profileModel');
+const  { getProfileById }=require('../Model/profileModel');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();

@@ -15,6 +15,7 @@ function Profile() {
   const [totalLikes, setTotalLikes] = useState(0);
   const [photosLiked, setPhotosLiked] = useState(0);
   const [userPhotos, setUserPhotos] = useState([]);
+  const [likedPhotos, setLikedPhotos] = useState([]);
 
   const navigate = useNavigate();
 
@@ -63,8 +64,24 @@ function Profile() {
       }
     };
 
+    const fetchLikedPhotos = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/liked-photos`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setLikedPhotos(response.data.photos);
+      } catch (error) {
+        console.error('Error fetching liked photos:', error);
+      }
+    };
+
     fetchProfile();
     fetchUserPhotos();
+    fetchLikedPhotos();
   }, []);
 
   const handleEditClick = () => {
@@ -155,24 +172,42 @@ function Profile() {
         </a>
       </div>
 
-      {/* User Photos */}
-      {activeTab === "Photos" && (
+    {/* User Photos */}
+    {activeTab === "Photos" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {userPhotos.map((photo) => (
-            <div key={photo.post_id} onClick={()=>handlePhotoClick(photo.post_id)} className="relative overflow-hidden  shadow-lg group">
-              <img
-                src={`${import.meta.env.VITE_API_URL}${photo.image_path}`}
-                alt={photo.title}
-                className="w-full h-60 object-cover group-hover:scale-105 transition duration-300 ease-in-out"
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">
-                <span className="text-sm">{photo.title}</span>
-              </div>
+        {userPhotos.map((photo) => (
+          <div key={photo.post_id} onClick={()=>handlePhotoClick(photo.post_id)} className="relative overflow-hidden  shadow-lg group">
+            <img
+              src={`${import.meta.env.VITE_API_URL}${photo.image_path}`}
+              alt={photo.title}
+              className="w-full h-60 object-cover group-hover:scale-105 transition duration-300 ease-in-out"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">
+              <span className="text-sm">{photo.title}</span>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* Liked Photos */}
+    {activeTab === "Photo-Liked" && (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {likedPhotos.map((photo) => (
+          <div key={photo.post_id} onClick={()=>handlePhotoClick(photo.post_id)} className="relative overflow-hidden  shadow-lg group">
+            <img
+              src={`${import.meta.env.VITE_API_URL}${photo.image_path}`}
+              alt={photo.title}
+              className="w-full h-60 object-cover group-hover:scale-105 transition duration-300 ease-in-out"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">
+              <span className="text-sm">{photo.username}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
   );
 }
 

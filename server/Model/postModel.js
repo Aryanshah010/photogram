@@ -23,6 +23,26 @@ async function getGenreById(genre_id) {
     }
 }
 
+async function getPostsByGenre(genre_id) {
+    try {
+        const query = `
+            SELECT 
+                p.post_id, p.title, p.description, p.genre_id, p.location, p.image_path, p.created_at,
+                u.id AS user_id, u.name AS username
+            FROM post p
+            JOIN users_registration u ON p.user_id = u.id
+            WHERE p.genre_id = $1
+            ORDER BY p.created_at DESC;
+        `;
+        const { rows } = await pool.query(query, [genre_id]);
+        return rows;
+    } catch (error) {
+        console.error('Error fetching posts by genre:', error.message);
+        throw new Error('Error fetching posts by genre');
+    }
+}
+
+
 async function deletePost(post_id) {
     try {
         const query = 'DELETE FROM post WHERE post_id = $1 RETURNING post_id';
@@ -110,5 +130,5 @@ async function getAllPosts() {
     }
 }
 
-module.exports = { createPost, getGenreById, deletePost, updatePost, getPostsByUser, getPostById, getAllPosts };
+module.exports = { createPost, getGenreById, deletePost, updatePost, getPostsByUser, getPostById, getAllPosts, getPostsByGenre };
  

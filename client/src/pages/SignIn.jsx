@@ -3,23 +3,41 @@ import { Link, useNavigate } from 'react-router-dom';
 import background from '../assets/background.jpg';
 import axios from 'axios';
 
-const InputField = ({ placeholder, type, value, onChange, error, icon }) => (
-    <div className="w-110 flex flex-col space-y-1">
-        <div className="flex items-center border border-slate-200/50 rounded">
-            <input
-                className="h-100 flex-1 px-3 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder={placeholder}
-                type={type}
-                value={value}
-                onChange={onChange}
-            />
-            <div className="px-3 text-white">
-                <span className={`fa ${icon}`}></span>
+const InputField = ({ placeholder, type, value, onChange, error, icon }) => {
+    const [showPassword, setShowPassword] = useState(false);
+    
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
+    return (
+        <div className="w-110 flex flex-col space-y-1">
+            <div className="flex items-center border border-slate-200/50 rounded">
+                <input
+                    className="h-100 flex-1 px-3 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder={placeholder}
+                    type={type === 'password' ? (showPassword ? 'text' : 'password') : type}
+                    value={value}
+                    onChange={onChange}
+                />
+                {type === 'password' && (
+                    <div 
+                        className="px-3 text-white cursor-pointer"
+                        onClick={togglePasswordVisibility}
+                    >
+                        <span className={`fa ${showPassword ? 'fa-eye' : 'fa-eye-slash'}`}></span>
+                    </div>
+                )}
+                {type !== 'password' && (
+                    <div className="px-3 text-white">
+                        <span className={`fa ${icon}`}></span>
+                    </div>
+                )}
             </div>
+            {error && <p className="text-red-500 text-xs">{error}</p>}
         </div>
-        {error && <p className="text-red-500 text-xs">{error}</p>}
-    </div>
-);
+    );
+};
 
 function SignIn() {
   const [email, setEmail] = useState('');
